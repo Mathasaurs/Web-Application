@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dino Math Quiz</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+            text-align: center;
+            animation: slideIn 0.5s ease-in-out;
+        }
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        .dino-title {
+            font-size: 3em;
+            margin: 20px 0;
+        }
+        .intro-text {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        .question-container {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        .question-container.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #ddd;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s ease;
+        }
+        .question {
+            color: #333;
+            font-size: 1.3em;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        .dino-fact {
+            background: #f0f4ff;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            color: #555;
+            font-style: italic;
+            font-size: 0.95em;
+        }
+        .options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .option {
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        .option:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+        .option.selected {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        .option.correct {
+            background: #4caf50;
+            color: white;
+            border-color: #4caf50;
+        }
+        .option.incorrect {
+            background: #f44336;
+            color: white;
+            border-color: #f44336;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1em;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: transform 0.2s ease;
+        }
+        button:hover {
+            transform: scale(1.05);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .start-btn, .restart-btn {
+            padding: 15px 40px;
+            font-size: 1.2em;
+        }
+        .results {
+            display: none;
+        }
+        .results.active {
+            display: block;
+        }
+        .score {
+            font-size: 3em;
+            color: #667eea;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        .results-text {
+            font-size: 1.3em;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        .message {
+            font-size: 1.2em;
+            color: #764ba2;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="intro" class="intro-section">
+            <h1>🦕 DINO MATH QUIZ 🦕</h1>
+            <div class="dino-title">🦖</div>
+            <p class="intro-text">Test your math skills with our prehistoric math challenge! Answer 10 questions and see how smart you are!</p>
+            <button class="start-btn" onclick="startQuiz()">Start Quiz</button>
+        </div>
+        <div id="quiz" class="quiz-section" style="display: none;">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <p style="color: #666; margin-bottom: 20px;">Question <span id="questionNumber">1</span> of 10</p>
+            <div id="questionsContainer"></div>
+            <button onclick="nextQuestion()" id="nextBtn" disabled>Next Question</button>
+        </div>
+        <div id="results" class="results">
+            <h1>Quiz Complete! 🎉</h1>
+            <div class="dino-title">🦕✨</div>
+            <p class="score" id="scoreDisplay"></p>
+            <p class="results-text">out of 10 questions correct!</p>
+            <div class="message" id="message"></div>
+            <button class="restart-btn" onclick="restartQuiz()">Take Quiz Again</button>
+        </div>
+    </div>
+    <script>
+        const questions = [
+            {
+                question: "What is 5 + 3?",
+                options: ["8", "9", "7", "10"],
+                correct: 0,
+                fact: "🦕 Fun Fact: The T-Rex had a bite force of 12,800 PSI - stronger than any modern animal!"
+            },
+            {
+                question: "What is 12 - 4?",
+                options: ["7", "8", "9", "6"],
+                correct: 1,
+                fact: "🦖 Fun Fact: Triceratops had three horns and could weigh up to 12 tons!"
+            },
+            {
+                question: "What is 6 × 2?",
+                options: ["10", "14", "12", "8"],
+                correct: 2,
+                fact: "🦕 Fun Fact: Brachiosaurus could reach heights of 50 feet - as tall as a 5-story building!"
+            },
+            {
+                question: "What is 20 ÷ 4?",
+                options: ["3", "5", "6", "4"],
+                correct: 1,
+                fact: "🦖 Fun Fact: Velociraptors hunted in packs and were incredibly intelligent!"
+            },
+            {
+                question: "What is 7 + 8?",
+                options: ["14", "15", "16", "13"],
+                correct: 1,
+                fact: "🦕 Fun Fact: Stegosaurus had 17 plates along its back and used them for temperature control!"
+            },
+            {
+                question: "What is 25 - 10?",
+                options: ["14", "16", "15", "12"],
+                correct: 2,
+                fact: "🦖 Fun Fact: Ankylosaurus was covered in armor-like plates and had a club-like tail for defense!"
+            },
+            {
+                question: "What is 9 × 3?",
+                options: ["25", "27", "30", "24"],
+                correct: 1,
+                fact: "🦕 Fun Fact: Parasaurolophus had a hollow crest on its head used for communication!"
+            },
+            {
+                question: "What is 36 ÷ 6?",
+                options: ["5", "7", "6", "8"],
+                correct: 2,
+                fact: "🦖 Fun Fact: Iguanodon was one of the first dinosaurs ever discovered!"
+            },
+            {
+                question: "What is 15 + 12?",
+                options: ["26", "28", "27", "25"],
+                correct: 2,
+                fact: "🦕 Fun Fact: Spinosaurus was larger than T-Rex and could swim!"
+            },
+            {
+                question: "What is 100 ÷ 10?",
+                options: ["8", "12", "10", "15"],
+                correct: 2,
+                fact: "🦖 Fun Fact: Dinosaurs roamed the Earth for over 160 million years!"
+            }
+        ];
+        let currentQuestion = 0;
+        let score = 0;
+        let answered = false;
+        function startQuiz() {
+            document.getElementById('intro').style.display = 'none';
+            document.getElementById('quiz').style.display = 'block';
+            displayQuestion();
+        }
+        function displayQuestion() {
+            const question = questions[currentQuestion];
+            const container = document.getElementById('questionsContainer');
+            container.innerHTML = `
+                <div class="question-container active">
+                    <p class="question">${question.question}</p>
+                    <div class="dino-fact">${question.fact}</div>
+                    <div class="options">
+                        ${question.options.map((option, index) => `
+                            <div class="option" onclick="selectAnswer(${index})">${option}</div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            updateProgress();
+            answered = false;
+            document.getElementById('nextBtn').disabled = true;
+        }
+        function selectAnswer(index) {
+            if (answered) return;
+            answered = true;
+            const question = questions[currentQuestion];
+            const options = document.querySelectorAll('.option');
+            options.forEach((option, i) => {
+                if (i === question.correct) {
+                    option.classList.add('correct');
+                } else if (i === index) {
+                    option.classList.add('incorrect');
+                } else {
+                    option.classList.add('selected');
+                }
+                option.style.pointerEvents = 'none';
+            });
+            if (index === question.correct) {
+                score++;
+            }
+            document.getElementById('nextBtn').disabled = false;
+        }
+        function nextQuestion() {
+            currentQuestion++;
+            if (currentQuestion < questions.length) {
+                displayQuestion();
+            } else {
+                showResults();
+            }
+        }
+        function updateProgress() {
+            const progress = ((currentQuestion + 1) / questions.length) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('questionNumber').textContent = currentQuestion + 1;
+        }
+        function showResults() {
+            document.getElementById('quiz').style.display = 'none';
+            document.getElementById('results').classList.add('active');
+            document.getElementById('scoreDisplay').textContent = score;
+            let message = '';
+            if (score === 10) {
+                message = '🦖 PERFECT SCORE! You are a Dino Math Master! 🦖';
+            } else if (score >= 8) {
+                message = '🦕 Excellent! You are a Dino Math Expert! 🦕';
+            } else if (score >= 6) {
+                message = '🦖 Good Job! You know your dino math! 🦖';
+            } else if (score >= 4) {
+                message = '🦕 Not bad! Keep practicing your dino math! 🦕';
+            } else {
+                message = '🦖 Keep trying! Dinosaurs never give up! 🦖';
+            }
+            document.getElementById('message').textContent = message;
+        }
+        function restartQuiz() {
+            currentQuestion = 0;
+            score = 0;
+            answered = false;
+            document.getElementById('results').classList.remove('active');
+            document.getElementById('intro').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
