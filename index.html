@@ -16,6 +16,7 @@
         .quiz-container { margin: 20px auto; padding: 20px; border: 2px solid white; border-radius: 10px; }
         .question { font-size: 24px; }
         .answers { margin: 20px 0; }
+        .fact { margin: 15px 0; font-size: 18px; font-style: italic; color: #ffe082; min-height: 24px; }
         button { padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; }
         .correct { background-color: green; }
         .wrong { background-color: red; }
@@ -29,6 +30,7 @@
         <div class="progress"><div class="progress-bar"></div></div>
         <div class="question"></div>
         <div class="answers"></div>
+        <div class="fact"></div>
         <p>Score: <span id="score">0</span></p>
     </div>
     <audio id="correct-sound" src="correct.mp3" preload="auto"></audio>
@@ -57,28 +59,37 @@
                 document.querySelector('.question').innerText = currentQuestion.question;
                 const answersDiv = document.querySelector('.answers');
                 answersDiv.innerHTML = '';
-                [currentQuestion.answer, (currentQuestion.answer - 1), (currentQuestion.answer + 1)].forEach(answer => {
+                [currentQuestion.answer, (currentQuestion.answer - 1), (parseInt(currentQuestion.answer) + 1)].forEach(answer => {
                     const button = document.createElement('button');
                     button.innerText = answer;
                     button.onclick = () => checkAnswer(answer);
                     answersDiv.appendChild(button);
                 });
                 document.querySelector('.progress-bar').style.width = ((questionIndex + 1) / questions.length * 100) + '%';
+                // Clear fact area on new question
+                document.querySelector('.fact').innerText = '';
             } else {
                 endQuiz();
             }
         }
 
         function checkAnswer(answer) {
+            const currentFact = questions[questionIndex].fact;
             if (answer == questions[questionIndex].answer) {
                 score += 1;
                 document.getElementById('correct-sound').play();
             } else {
                 document.getElementById('wrong-sound').play();
             }
-            questionIndex++;
-            loadQuestion();
-            document.getElementById('score').innerText = score;
+            // Show the fact
+            document.querySelector('.fact').innerText = currentFact;
+            // Disable answer buttons to prevent multiple clicks
+            Array.from(document.querySelectorAll('.answers button')).forEach(btn => btn.disabled = true);
+            setTimeout(() => {
+                questionIndex++;
+                loadQuestion();
+                document.getElementById('score').innerText = score;
+            }, 1500); // Show the fact for 1.5 seconds
         }
 
         function endQuiz() {
